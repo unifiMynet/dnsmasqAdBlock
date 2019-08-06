@@ -1,0 +1,94 @@
+V8.5 Changes
+- Maintenance release - no new functionality
+- Add error handling logic to tar decompressing 
+- Add error handling logic to Shalla processing of tar file
+- Add more debugging information of tar decompressing
+- Add script runtime information to output
+- Add error handling of curl download
+- Abort script if more than 2 curl downloads fail - this helps prevent removal of existing blacklist in case of network outage during scrip processing.
+
+
+
+V8.3 Changes
+- Maintenance release - no new functionality.
+- Change 3 sources (hosts-file.net, pgl.yoyo.org, someonewhocares.org) to use https, http had been depreciated by the host on one of them.
+- Add download count information into the log file.
+
+
+
+V8.2 Changes
+- Maintenance release - no new functionality.
+- Add logic to strip subdirectories from sources containing them. Thank you @Jepong01.
+
+
+
+V8.1 Changes
+- Maintenance release - no new functionality.
+- Fix .conf file updating bug in V8 that added dnswhitelist example line on every run of script - 8.1 will also remove these lines.
+- Display warning if grep is BusyBox and not GNU. Thank you @bubiquit for continued ER-X feedback.
+- Clean all lines from block list that do not contain a dot (fix for 'com' introduced by a source). Thank you @Trexx.
+
+
+
+V8 Changes:
+- Custom options for dnsmasq can be entered directly into the .conf file. Thank you @johnluber for the idea.
+- max-time parameter is now passed to curl to prevent it trying indefiniately to download a file. Default is 60 seconds, which can be changed via the .conf file.
+- A user-created file (defined in the .conf file) can be called when the script completes. Thank you @smat for the idea.
+- Whitelisting has been enhanced to make it possible to whitelist a subdomain while still blacklisting the parent domain and sibling child domains (see .conf file for details). This may require you to add a new whitelist entry for the domain itself if your previous config was using a subdomain to whitelist an entire domain. Thank you @foxswat for the idea.
+- A bug has been fixed in the blacklist domain / subdomain processing. The logic has always removed child domains of blocked root domains to reduce the number of generated dnsmasq commands. However for single letter domains (such as i.com) the substring match was causing domains with the ending letter (i in this case) to be removed from the blacklist. Note - this will make your list grow somewhat as previously wrongly removed domains will now be included. Thank you Stephan0 for pointing this out.
+ 
+
+
+V7.1 Changes:
+
+- Maintenance release - no new functionality.
+- Fix for version updating logic if script is not located in default location. Thank you @Jepong01 for letting me know.
+- Support decimals in version number. Thank you @JZZ for the idea.
+- Added additional comments in the user-defined blacklist area in the .conf file.
+
+
+V7 Changes:
+
+- Updated the whitelist documention inside the .conf file. V6 had the new logic, but the old documentation.
+- When the default .conf file is created on the initial run of a new install, it will use the path to the directory it is in to populate some of the options.
+
+
+V6 Changes:
+
+- Enhancements for multi-instance, including automatically appending the folder name to the log file if the script is not in the default location.
+- Added singleDomains debugging file
+- Whitelist logic change - In prior versions, the whitelist logic was based on a partial match. Whitelisting somedomain.com would whitelist all entries including subdomains, so it would remove/whitelist: somedomain.com, sub1.somedomain.com, sub2.somedomain.com, etc. Due to a logic change to support ensuring that the entire root domain is not blacklisted when a child subdomain is whitelisted, you must now include the * prefix to specify an entire domain in whitelist. See the 'Adding a whitelist' area below for more information. Thank you @digitalgarrett for letting me know about the whitelist subdomain issue.
+
+
+V5 Changes:
+
+- Improved logic that determines root / single domains. Thank you @adrianmmiller for playing 'go sed' (It's kind of like go fish)
+- Headers stating the content source have been included in the debug files
+- You can now define the IP address to use for the blocked DNS entries via the .conf file. Thank you @Smat and @Jepong01 for the idea.
+- Config areas that are added to your existing .conf file by the script now have a 'New' label so you can find them. This label is removed on subsequent upgrades.
+- All the built in sources including shalla, pi-hole and others are individually specified in the .conf file expanding the ease of customization. - To this end, the conf options for usenonshalla and useshallalist are removed from existing .conf files during the upgrade process. Thank you @digitalgarrett and @mbnn for wanting more granularity.
+- The script has been enhanced to support multiple copies of itself (which live in different directories) in order to have individual configurations for different dnsmasq instances. See the .conf file for further information. Thank you @Jepong01 for the idea.
+- A new option has been added to the .conf file to stop the script processing before the final steps of configuring / restarting dnsmasq. This is to support additional debugging / testing as needed.
+
+
+V4 Changes:
+
+- Enhancement to the de-duplication logic. As the entries in the blacklist are treated as domains, listing of subdomains is not necessary. The script now removes any subdomains of existing domain entries. This has reduced the size of the list from approximately 130500 entries to 81900 entries while providing the same blocking. This should help reduce some of the DNS slowdown reported in V3 when additional sources were added. Thank you to @mbnn and @Smat for reporting the V3 slowness.
+- A user-defined blacklist can now be specified similar to how the existing user-defined whitelist is specified (See the .conf file). Thank you @JZZ for the idea.
+- Pre-processing of the user-defined blacklist and whitelist is now performed to reduce the chance of errors occuring due to blank lines. Thank you @JZZ for the idea.
+- Additional cleaning of list sources including removing directories from non-hostlist files is now performed. Thank you @Jepong01 for the idea.
+- User-defined download sources can now be added directly to the .conf file instead of having to edit the script itself. This will decrease custom edits that would be needed during upgrading. Thank you @Jepong01 for the idea.
+- A debugging flag has been added to the .conf file to enable saving of several stages of the processing file. Thank you @digitalgarrett for the idea.
+- The script version is now included in the .conf file and the email / log / display output.
+- Several options were added to the .conf file to allow disabling of default list sources.
+
+
+
+V3 changes:
+
+- The original script had the user configurable settings in the same file. While this worked well, they would need to be reconfigured for script updates (such as they will for this update). V3 now generates a getBlacklistHosts.conf file to hold the settings. Updates from V3 onward will not require the variables in the script to be updated as they are external to the script. 
+- If you are updating from a previous version, make note of any configuration settings (such as email) you have made in the script before you replace the existing file with the new version. Use those noted settings when instructed to below.
+- The squid source has been replaced with the shallalist.de source - Thank you @adrianmmiller for the idea.
+- To conserve bandwidth, the shallalist.de list will only be downloaded if the published MD5 sum has changed since the last download. - Thank you @adrianmmiller for the idea.
+- Cosmetic errors that occured on initial runs of the script have been resolved. - Thank you @mrkaye for alerting me to them.
+- Logging to the console / logfile / email has been enhanced.
