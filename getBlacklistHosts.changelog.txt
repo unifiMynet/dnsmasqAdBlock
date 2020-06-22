@@ -1,3 +1,10 @@
+V8.6 Changes
+- Maintenance release
+- There was a missing blank line after the smtp header in the email being sent (if enabled) which was causing the email layout to be garbled for some users. Thank you to @msavazzi for pointing it out and to @kkb18 for helping diagnose the cause and test the fix.
+- The URL sources in the .conf file can now be a zip file. The file will be downloaded,unzipped and processed. This is to support the previously existing malware-domains source which changed its data to a zip file.
+- URLs for malwaredomains.com and hosts-file.net were updated - existing .conf file entries will be updated automatically.
+
+
 V8.5 Changes
 - Maintenance release - no new functionality
 - Add error handling logic to tar decompressing 
