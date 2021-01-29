@@ -1,0 +1,23 @@
+#!/bin/vbash
+
+readonly logFile="/var/log/configDnsmasq.log"
+
+if [ -f ${logFile} ]; then
+    rm ${logFile}
+fi    
+
+
+# start configuration steps
+# copy in the dnsmasq config for the main
+cp /config/scripts/dnsmasqMain/dnsmasqMain.conf /etc/dnsmasq.d/
+# restart it to listen to only configured interfaces
+/etc/init.d/dnsmasq force-reload  >${logFile}
+
+# copy the init for dnsmasq100
+cp /config/scripts/dnsmasq100/dnsmasq100~ /etc/init.d/dnsmasq100
+
+# setup init for it
+/usr/sbin/update-rc.d dnsmasq100 defaults >>${logFile}
+
+/etc/init.d/dnsmasq100 restart  >>${logFile}
+
