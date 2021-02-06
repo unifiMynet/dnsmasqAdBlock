@@ -1,3 +1,6 @@
+V8.7 Changes
+- Performance improvement: support addn-hosts dnsmasq directive by option (useAddnHosts - default: true)
+
 V8.6 Changes
 - Maintenance release
 - There was a missing blank line after the smtp header in the email being sent (if enabled) which was causing the email layout to be garbled for some users. Thank you to @msavazzi for pointing it out and to @kkb18 for helping diagnose the cause and test the fix.
