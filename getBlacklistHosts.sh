@@ -30,7 +30,7 @@
 ## If it does not exist, run this script to create it, then edit it (if desired).
 
 #Version of this script
-version="V8.6"
+version="V8.7"
 
 #full path and filename to file which holds the count of hosts from the previous run - depreciated
 #this file will be imported into the .conf file and deleted if it exists
@@ -1468,11 +1468,17 @@ fi
 
 if [ ! -f ${whitelist} ]; then
 	echo ".    Not using a whitelist..." | sendmsg
-	/bin/sed -i -e 's/^/address=\//' ${sTmpAdHosts}
 	#clean the resolveAddress
 	cleanResolveAddress="$(echo -e "${resolveAddress}" | tr -d '[:space:]')"
-	/bin/sed -i -e "s/$/\/${cleanResolveAddress}/" ${sTmpAdHosts}
-    cat ${sTmpAdHosts} > ${sTmpHostSplitterD}/fullhosts
+	echo ".    Using host ${cleanResolveAddress}" | sendmsg
+	if [ "$useAddnHosts" = true ] ; then
+	  /bin/sed -i -e "s/^/${cleanResolveAddress} /" ${sTmpAdHosts}
+	else
+	  /bin/sed -i -e 's/^/address=\//' ${sTmpAdHosts}
+	  /bin/sed -i -e "s/$/\/${cleanResolveAddress}/" ${sTmpAdHosts}
+  fi
+
+  cat ${sTmpAdHosts} > ${sTmpHostSplitterD}/fullhosts
 	current_count=$(wc -l < ${sTmpAdHosts})
 else
 	mathbeforewhite=$(wc -l < ${sTmpAdHosts})
@@ -1492,23 +1498,26 @@ else
 	
 	#remove start of line marker and * from wildcards
 	/bin/sed -i 's/^\$\*[\.]*//g' ${sTmpWhiteDomains}
-	
-	
-    /bin/grep -v -F -f  ${sTmpWhiteDomains} ${sTmpAdHosts} > ${sTmpHostSplitterD}/fullhosts
+
+  /bin/grep -v -F -f  ${sTmpWhiteDomains} ${sTmpAdHosts} > ${sTmpHostSplitterD}/fullhosts
 
 	
 	#remove start and end string markers from the list of whitelist domains
 	/bin/sed -i -e "s/\$\+//g" ${sTmpHostSplitterD}/fullhosts
 	
 	current_count=$(wc -l < /${sTmpHostSplitterD}/fullhosts)
-	#add start of dnsmsaq config command
-	/bin/sed -i -e 's/^/address=\//' ${sTmpHostSplitterD}/fullhosts
 	#clean the resolveAddress
 	cleanResolveAddress="$(echo -e "${resolveAddress}" | tr -d '[:space:]')"
-	#add command ending
-	/bin/sed -i -e "s/$/\/${cleanResolveAddress}/" ${sTmpHostSplitterD}/fullhosts
-	
-	 
+
+	if [ "$useAddnHosts" = true ] ; then
+	  /bin/sed -i -e "s/^/${cleanResolveAddress} /" ${sTmpHostSplitterD}/fullhosts
+	else
+    #add start of dnsmsaq config command
+    /bin/sed -i -e 's/^/address=\//' ${sTmpHostSplitterD}/fullhosts
+    #add command ending
+    /bin/sed -i -e "s/$/\/${cleanResolveAddress}/" ${sTmpHostSplitterD}/fullhosts
+  fi
+
 	if [ "${current_count}" -lt "1" ]; then
       echo ".    ${current_count} blacklist entries found after processing whitelist. Something went wrong, was everything whitelisted? Aborting." | sendmsg
       cleanup
@@ -1594,8 +1603,13 @@ for f in ${dnsmasqHome}/blackhost*; do
     [ -e "$f" ] && rm ${dnsmasqHome}/blackhost*
     break
 done
-        
-cp ${sTmpHostSplitterD}/blackhost* ${dnsmasqHome}/
+
+if [ "$useAddnHosts" = true ] ; then
+  mkdir -p ${dnsmasqHome}/hosts/
+  cp ${sTmpHostSplitterD}/blackhost* ${dnsmasqHome}/hosts/
+else
+  cp ${sTmpHostSplitterD}/blackhost* ${dnsmasqHome}/
+fi
 rm -rf ${sTmpHostSplitterD}
 
 
@@ -1615,7 +1629,7 @@ rm -f ${dnsmasqHome}/${optionsFileName}
 
 #create options file if needed
 while IFS=';' read -ra ADDR; do
-        if [ ${#ADDR[@]} -ne 0 ]; then
+    if [ ${#ADDR[@]} -ne 0 ]; then
           echo ".    Custom dnsmasq options found in conf file, generating config ${dnsmasqHome}/${optionsFileName}..." | sendmsg
 		else
 		  echo ".    No custom dnsmasq options found in conf file..." | sendmsg
@@ -1623,6 +1637,10 @@ while IFS=';' read -ra ADDR; do
       for i in "${ADDR[@]}"; do
           echo "$i" >> ${dnsmasqHome}/${optionsFileName}
       done
+    if [ "$useAddnHosts" = true ] ; then
+      echo ".    Adding addn-hosts directive to config ${dnsmasqHome}/${optionsFileName}..." | sendmsg
+      echo "addn-hosts=${dnsmasqHome}/hosts" >> ${dnsmasqHome}/${optionsFileName}
+    fi
 done <<< "$dnsmasqOptions"
 
 
