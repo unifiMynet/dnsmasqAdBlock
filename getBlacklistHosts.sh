@@ -1604,9 +1604,14 @@ for f in ${dnsmasqHome}/blackhost*; do
     break
 done
 
+for f in ${dnsmasqHome}/addn-hosts/blackhost*; do
+    [ -e "$f" ] && rm ${dnsmasqHome}/addn-hosts/blackhost*
+    break
+done
+
 if [ "$useAddnHosts" = true ] ; then
-  mkdir -p ${dnsmasqHome}/hosts/
-  cp ${sTmpHostSplitterD}/blackhost* ${dnsmasqHome}/hosts/
+  mkdir -p ${dnsmasqHome}/addn-hosts/
+  cp ${sTmpHostSplitterD}/blackhost* ${dnsmasqHome}/addn-hosts/
 else
   cp ${sTmpHostSplitterD}/blackhost* ${dnsmasqHome}/
 fi
@@ -1639,7 +1644,7 @@ while IFS=';' read -ra ADDR; do
       done
     if [ "$useAddnHosts" = true ] ; then
       echo ".    Adding addn-hosts directive to config ${dnsmasqHome}/${optionsFileName}..." | sendmsg
-      echo "addn-hosts=${dnsmasqHome}/hosts" >> ${dnsmasqHome}/${optionsFileName}
+      echo "addn-hosts=${dnsmasqHome}/addn-hosts" >> ${dnsmasqHome}/${optionsFileName}
     fi
 done <<< "$dnsmasqOptions"
 
