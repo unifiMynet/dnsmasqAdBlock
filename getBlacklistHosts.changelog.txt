@@ -1,3 +1,6 @@
+V8.8 Changes
+- Fix: disable sub-domain elimination when useAddnHosts is enabled. Otherwise there will be dropped most of the blacklisted domains.
+
 V8.7 Changes
 - Performance improvement: support addn-hosts dnsmasq directive by option (useAddnHosts - default: true)
 

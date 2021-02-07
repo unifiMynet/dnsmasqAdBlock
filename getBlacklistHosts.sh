@@ -30,7 +30,7 @@
 ## If it does not exist, run this script to create it, then edit it (if desired).
 
 #Version of this script
-version="V8.7"
+version="V8.8"
 
 #full path and filename to file which holds the count of hosts from the previous run - depreciated
 #this file will be imported into the .conf file and deleted if it exists
