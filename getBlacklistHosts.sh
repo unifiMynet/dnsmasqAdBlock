@@ -560,6 +560,11 @@ historycountFile=\"${scriptHome}/BlacklistHistoryCount.txt\"\n\
 #2) addn-hosts: \"0.0.0.0 url.tld\"\n\
 #addn-hosts is faster\n\
 #https://www.reddit.com/r/sysadmin/comments/beqbcj/dnsmasq_is_very_slow_due_to_adblocking/\n\
+#Attention: Setting this to true will disable the sub-domain elimination in favor of blocking the complete host address\n\
+# Sub-domain elimination: a.foo.com and b.foo.com will result in foo.com\n\
+# This means with sub-domain elimination there will be ALL subdomains blocked no matter if it is listed in the\n\
+# original blacklist. Without sub-domain elimination exactly the addresses listed in the original blacklist will be\n\
+# blocked.
 useAddnHosts=true\n\
 \n\
 \n\
@@ -1000,6 +1005,11 @@ if ! grep -q "useAddnHosts" ${dataFile}; then
 #2) addn-hosts: \"0.0.0.0 url.tld\"\
 #addn-hosts is faster\
 #https:\/\/www.reddit.com\/r\/sysadmin\/comments\/beqbcj\/dnsmasq_is_very_slow_due_to_adblocking\/\
+#Attention: Setting this to true will disable the sub-domain elimination in favor of blocking the complete host address\
+# Sub-domain elimination: a.foo.com and b.foo.com will result in foo.com\
+# This means with sub-domain elimination there will be ALL subdomains blocked no matter if it is listed in the\
+# original blacklist. Without sub-domain elimination exactly the addresses listed in the original blacklist will be\
+# blocked.
 useAddnHosts=true\
 ' ${dataFile}
   echo ".    Adding useAddnHosts to conf file..." | sendmsg
@@ -1088,9 +1098,10 @@ declare -A ShallaArray
 
 source ${dataFile}
 
+#When using addn-hosts directive sub-domain elimination will not work because hosts entries can not include wildcards
+disableSubDomainElimination=${useAddnHosts}
 
 #Download and merge multiple hosts files to ${sTmpNewHosts}
-
 downloadErrors=0
 
 ## one to test with
@@ -1409,23 +1420,27 @@ fi
 #add end of string marker to the blacklist list
 /bin/sed -i -e 's/$/\$/' ${sTmpAdHosts}
 
-iSingleDomainCount="$(wc -l "${sTmpDomainss}" | cut -d ' ' -f 1)"
-echo ".    Found ${iSingleDomainCount} single domains..." | sendmsg
+
 
 #add leading dot to single domain list
 /bin/sed -i -e 's/^/\./' ${sTmpSubFilters}
 
-echo ".    Removing sub-domains..." | sendmsg
-#remove any subdomains of our domains list since we are blocking as domains
-/bin/grep -v -F -f ${sTmpSubFilters} ${sTmpAdHosts} > ${sTmpCleaneds}
+if [ "${disableSubDomainElimination}" = true ] ; then
+  cp ${sTmpAdHosts} ${sTmpCleaneds}
+else
+  iSingleDomainCount="$(wc -l "${sTmpDomainss}" | cut -d ' ' -f 1)"
+  echo ".    Found ${iSingleDomainCount} single domains..." | sendmsg
 
+  echo ".    Removing sub-domains..." | sendmsg
+  #remove any subdomains of our domains list since we are blocking as domains
+  /bin/grep -v -F -f ${sTmpSubFilters} ${sTmpAdHosts} > ${sTmpCleaneds}
+fi
 
 if [ "$enableDebugging" = true ] ; then
 	echo ".    Creating debugging file singleDomains..." | sendmsg
 	#remove the end of string marker
 	/bin/sed -i -e "s/\$\+//g" ${sTmpDomainss}
 	cp ${sTmpDomainss} ${debugDirectory}/singleDomains
-		
 fi
 
 #add cleaned to domain list
